@@ -1,6 +1,41 @@
 # APAI On-Device Learning Lab
 
-In this lab you will learn how to code a simple On-Device Learning (ODL) workload on a PULP-based System-on-Chip. In this exercise, you will train a simple Deep Neural Network on a sample data and label, and you will profile its performances over an epoch of training. 
+
+## How to deliver the assignment:
+
+Use Virtuale, upload only the assignment file named as follows:
+
+`LAB#_APAI_name1_name2.ipynb`
+
+___
+
+## Quickstart
+
+#### How to access the server
+
+1. Open a browser and paste this link:
+`https://compute.eees.dei.unibo.it:8443/guacamole`
+
+2. access with your credentials. We distribute credentials by hand.
+3. open a new terminal
+4. clone this repository and go to your working directory.
+```
+git clone <url here>
+cd <folder>
+```
+5. open the folder with visual studio code
+6. start working !
+
+
+#### DO NOT FORGET!
+Every time you open a new terminal run:
+
+`module load pulp-sdk`
+
+
+# LAB starts here!
+
+In this lab you will learn how to code a simple On-Device Learning (ODL) workload on a PULP-based System-on-Chip. In this exercise, you will train a simple Deep Neural Network on a sample data and label, and you will profile its performances over an epoch of training.
 
 First, the DNN architecture is the following:
 - Conv2D layer
@@ -12,7 +47,7 @@ In this test, the reference data (i.e., the input data, the expected output and 
 To compile the project, run:
 `rm -rf BUILD/; make clean get_golden all run`.
 
-During the exercise, check carefully the existing functions in [net.c](net.c)!! They are VERY useful!! 
+During the exercise, check carefully the existing functions in [net.c](net.c)!! They are VERY useful!!
 
 As a reference for this exercise, please point to [PULP-TrainLib](https://github.com/pulp-platform/pulp-trainlib).
 
@@ -28,11 +63,11 @@ QUESTIONS:
 
 ## Exercise 1: Forward prediction
 
-You will now perform a forward prediction with the non-initialized DNN. If you look at [net.c](net.c), the `forward()` function performs a forward prediction by calling all layers in sequence. Each layer computes its output, using the previous data provided by the previous layer in sequence. The first layer takes the input data as input, and the output of the last layer is the DNN's prediction. Let's see what happens inside. 
+You will now perform a forward prediction with the non-initialized DNN. If you look at [net.c](net.c), the `forward()` function performs a forward prediction by calling all layers in sequence. Each layer computes its output, using the previous data provided by the previous layer in sequence. The first layer takes the input data as input, and the output of the last layer is the DNN's prediction. Let's see what happens inside.
 
 First, modify the `net_step()` function to perform a forward prediction. The, print the output of the DNN.
 
-QUESTIONS: 
+QUESTIONS:
 - 1A) Does the output of the DNN approximate the ideal label?
 
 Then, let's evaluate the performances of the DNN. To have a very good estimate of the latency of a given workload, let's monitor PULP's Performance Counters. In practice, these counters count the number of events of a given type, e.g., the clock cycles to execute a program, the number of instructions, and more. Performance Counters are managed by the macros contained in [stats.h](stats.h). To start measuring the stats, call `START_STATS()`. To stop and print the stats, call `STOP_STATS()`.
@@ -42,7 +77,7 @@ NOTE: Be careful not to profile functions/workloads which contain `printf()` fun
 QUESTIONS:
 - 1B) How many clock cycles does the forward take?
 - 1C) How many instructions?
-- 1D) How high is the IPC (instruction-per-cycle)? 
+- 1D) How high is the IPC (instruction-per-cycle)?
 - 1E) The number of MAC operations of the DNN is 10656. How many are the MAC/cycle to execute the forward?
 
 ## Exercise 2: Loss Function
@@ -53,7 +88,7 @@ Let's dig a bit into the code of PULP-TrainLib: [lib/sources/pulp_losses_fp32.c]
 
 ![MSELoss](assets/MSELoss.png)
 
-In our code, 1/N is already computed as `meanval`. Complete the code to compute the loss. When you're done, you can visualize the value of the loss by uncommenting the line `APP_CFLAGS += -DDEBUG_LOSS` inside the [Makefile](Makefile). 
+In our code, 1/N is already computed as `meanval`. Complete the code to compute the loss. When you're done, you can visualize the value of the loss by uncommenting the line `APP_CFLAGS += -DDEBUG_LOSS` inside the [Makefile](Makefile).
 
 QUESTIONS:
 - 2A) What is the value of the loss (this may vary from run to run)?
@@ -71,7 +106,7 @@ Now, COMMENT the `APP_CFLAGS += -DDEBUG_LOSS` or you will have printf()s during 
 
 ## Exercise 3: Backward step
 
-In this exercise, you will learn how to design the backward steps of an On-Device Learning primitive, and how to call it!! 
+In this exercise, you will learn how to design the backward steps of an On-Device Learning primitive, and how to call it!!
 
 Let's start top-down: the sequence of operations during the backward step is reversed with respect to the forward. That's because we want to bring the output gradient towards the input, and compute the gradient of the weights! The sequence of layers to be backpropagated is contained into the `backward()` function in [net.c](net.c). Looking at the `forward()` function as a reference, complete the `backward()` function for the whole network. You can look into [the library](lib/include/) to find the forward and backward primitives (e.g., [conv2d fp32](lib/include/pulp_conv2d_fp32.h)).
 
@@ -81,15 +116,15 @@ Now, uncomment `print_gradients()` and compile the code. You will see that the g
 
 On the right, you have the matrix expressions of the three training steps. Note that, in the code, N is the number of rows of the left matrix, K is the shared size (columns of the first, rows of the second) and M is the number of columns of the matrix on the right. Complete the primitives of the [fully-connected](lib/sources/pulp_linear_fp32.c).
 
-When you're done, compile the code again. Now the gradients should be computed for all the DNN!! If so, comment the `print_gradients()` function. Now, profile the `backward()` with the performance counters. 
+When you're done, compile the code again. Now the gradients should be computed for all the DNN!! If so, comment the `print_gradients()` function. Now, profile the `backward()` with the performance counters.
 
 QUESTIONS:
 - 3A) How many cycles does it take to compute the backward?
 - 3B) How many instructions?
-- 3C) IPC? 
+- 3C) IPC?
 - 4D) The total MAC are 27360. MAC/cycle?
 
-Now, remove/comment the profiling functions around the backward to continue. 
+Now, remove/comment the profiling functions around the backward to continue.
 
 ## Exercise 4: Weight Update
 
@@ -99,7 +134,7 @@ Now, let's move to the weight update! After computing the weight gradient, you c
 
 The formula is called only on layers which possess weights (i.e., not the ReLU!). Now, you will set the function to call the weight update to the correct layers. In PULP-TrainLib, the data is contained into 1-D arrays that store the tensors. To wrap the tensors, a `struct blob` is defined for each tensor, containing both their data and the gradients. Complete the code of `update_weights()` in [net.c](net.c) with the most suitable blobs to update the DNN.
 
-Now, print the weights of the last layer before and after the update, using `print_weights()`. 
+Now, print the weights of the last layer before and after the update, using `print_weights()`.
 
 QUESTION
 - 4A) Do you notice any difference in the weights values before and after the update?
@@ -108,7 +143,7 @@ To complete Exercise 4, comment all the `printf()` and `print_weights()` around 
 
 ## Exercise 5: Training the classifier
 
-Now, let's finally run a training! You will test the convergence of the DNN against the sample input and label generated by the GM. To start this exercise, uncomment the code at the bottom of [net.c](net.c) (both the profiling an the last block of `net_step()`). BE CAREFUL TO HAVE THE PRINTS COMMENTED AS SUGGESTED IN EXERCISE 4! The dataset, in this case, is composed of a single data. Therefore, the training will iterate on this only sample for a given number of epochs, to test the convergence and validate the model. 
+Now, let's finally run a training! You will test the convergence of the DNN against the sample input and label generated by the GM. To start this exercise, uncomment the code at the bottom of [net.c](net.c) (both the profiling an the last block of `net_step()`). BE CAREFUL TO HAVE THE PRINTS COMMENTED AS SUGGESTED IN EXERCISE 4! The dataset, in this case, is composed of a single data. Therefore, the training will iterate on this only sample for a given number of epochs, to test the convergence and validate the model.
 
 First, let's define the `learning_rate` and the `epochs` hyperparameters in [GM.py](utils/GM.py). Leave the `batch_size` to 1, as we have a single sample. Note that `batch_size = 1` is a common setup for training DNNs on Microcontrollers, due to the very limited amount of available memory (i.e., the single sample is acquired and we learned, then it's discarded).
 
