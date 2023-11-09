@@ -7,8 +7,6 @@ Use Virtuale, upload only the assignment file named as follows:
 
 `LAB#_APAI_name1_name2.ipynb`
 
-___
-
 ## Quickstart
 
 #### How to access the server
@@ -32,6 +30,7 @@ Every time you open a new terminal run:
 
 `module load pulp-sdk`
 
+___
 
 # LAB starts here!
 
